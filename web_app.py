@@ -1,5 +1,6 @@
 import os
 import secrets
+from pathlib import Path
 from typing import List, Optional
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -20,8 +21,9 @@ load_dotenv()
 
 app = FastAPI(title="Spotify Şarkı Sözü & Keşif Motoru 2.1 PRO")
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
+PROJECT_DIR = Path(__file__).resolve().parent
+app.mount("/static", StaticFiles(directory=PROJECT_DIR / "static"), name="static")
+templates = Jinja2Templates(directory=PROJECT_DIR / "templates")
 
 engine = SearchPipelineEngine()
 
@@ -247,7 +249,15 @@ async def create_playlist_endpoint(req: CreatePlaylistRequest, request: Request)
 
 @app.post("/api/save-credentials")
 async def save_credentials(req: CredentialsRequest):
-    with open(".env", "w", encoding="utf-8") as f:
+    # Vercel's deployed source directory is read-only. Configure credentials
+    # in the Vercel project environment instead of trying to modify .env.
+    if os.getenv("VERCEL"):
+        raise HTTPException(
+            status_code=400,
+            detail="Vercel dağıtımında Spotify anahtarlarını Project Settings > Environment Variables bölümünde ayarlayın.",
+        )
+
+    with open(PROJECT_DIR / ".env", "w", encoding="utf-8") as f:
         f.write(f"SPOTIPY_CLIENT_ID={req.client_id}\n")
         f.write(f"SPOTIPY_CLIENT_SECRET={req.client_secret}\n")
         f.write(f"SPOTIPY_REDIRECT_URI={os.getenv('SPOTIPY_REDIRECT_URI', 'http://127.0.0.1:3001/callback')}\n")

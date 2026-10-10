@@ -64,6 +64,18 @@ python3 web_app.py
 ```
 > Uygulama **http://localhost:3001** adresinde çalışır.
 
+## Vercel'e Dağıtım
+
+Proje, Vercel yapılandırmasında `web_app:app` FastAPI giriş noktasını kullanır. GitHub deposunu Vercel'e bağlayıp aşağıdaki ortam değişkenlerini **Project Settings → Environment Variables** bölümünde ayarlayın:
+
+- `SPOTIPY_CLIENT_ID`
+- `SPOTIPY_CLIENT_SECRET`
+- `SPOTIPY_REDIRECT_URI` — ör. `https://proje-adiniz.vercel.app/callback`
+
+`SPOTIPY_REDIRECT_URI` değerini Spotify Developer Dashboard'daki Redirect URI listesine de karakter karakter aynı şekilde ekleyin. Ortam değişkenlerini ekledikten sonra yeni bir deployment başlatın.
+
+Vercel'de SQLite veritabanı geçici `/tmp` alanını kullanır; bu alan deployment'lar ve sunucu örnekleri arasında kalıcı değildir. Bu nedenle deployment önizleme ve deneme içindir; kalıcı ve çok kullanıcılı OAuth oturumları için uygulamanın harici bir veritabanına taşınması gerekir. Vercel'de istemci anahtarlarını uygulama içindeki ayar penceresinden kaydetmek yerine proje ortam değişkenlerini kullanın.
+
 ---
 
 ## 🧪 Test Sürecini Çalıştırma

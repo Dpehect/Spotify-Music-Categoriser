@@ -1396,7 +1396,8 @@ async function saveApiKeys() {
         window.location.reload();
       }, 1000);
     } else {
-      if (status) status.innerHTML = '<span class="text-red-400">❌ Bilgiler geçersiz veya Spotify reddetti.</span>';
+      const message = data.detail || "Bilgiler geçersiz veya Spotify reddetti.";
+      if (status) status.innerHTML = `<span class="text-red-400">❌ ${escapeHtml(message)}</span>`;
     }
   } catch (err) {
     if (status) status.innerHTML = `<span class="text-red-400">Hata: ${escapeHtml(err.message)}</span>`;

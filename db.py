@@ -3,7 +3,14 @@ import os
 import hashlib
 from typing import Optional, Dict, Any
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "music_finder.db")
+if os.getenv("DATABASE_PATH"):
+    DB_PATH = os.environ["DATABASE_PATH"]
+elif os.getenv("VERCEL"):
+    # Vercel's deployed source directory is read-only. /tmp is writable but
+    # ephemeral, so configure DATABASE_PATH to a durable database in production.
+    DB_PATH = os.path.join("/tmp", "music_finder.db")
+else:
+    DB_PATH = os.path.join(os.path.dirname(__file__), "music_finder.db")
 
 def init_db():
     conn = sqlite3.connect(DB_PATH, timeout=10.0)
