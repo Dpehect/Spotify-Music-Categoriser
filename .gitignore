@@ -1,0 +1,23 @@
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+
+# Python environments and generated files
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Local databases and runtime state
+*.db
+*.db-shm
+*.db-wal
+cookies.txt
+.cache
+
+# OS/editor files
+.DS_Store
+.idea/
+.vscode/

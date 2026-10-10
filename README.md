@@ -4,6 +4,20 @@ Spotify Web API, LRCLIB, Genius ve Musixmatch entegrasyonuyla; söz/dize, dil, k
 
 ---
 
+## How to Use / Nasıl Kullanılır
+
+### English
+1. Set `SPOTIPY_CLIENT_ID` and `SPOTIPY_REDIRECT_URI` in your `.env` file. Add the same redirect URI to your Spotify app settings.
+2. Start the app using the setup commands below, then open **http://localhost:3001**.
+3. Search with a song lyric, mood, or genre, or choose the filters and categories you want.
+4. Connect your Spotify account, choose the songs you like, and create a playlist.
+
+### Türkçe
+1. `.env` dosyasında `SPOTIPY_CLIENT_ID` ve `SPOTIPY_REDIRECT_URI` değerlerini ayarlayın. Aynı yönlendirme adresini Spotify uygulama ayarlarına da ekleyin.
+2. Aşağıdaki kurulum komutlarıyla uygulamayı başlatın ve **http://localhost:3001** adresini açın.
+3. Şarkı sözü, ruh hâli veya tür yazarak arayın ya da istediğiniz filtre ve kategorileri seçin.
+4. Spotify hesabınızı bağlayın, beğendiğiniz şarkıları seçin ve çalma listenizi oluşturun.
+
 ## 🛠️ Teknik Mimari & Yasal Uyumluluk (Compliance)
 
 ### 1. Spotify Web API Endpoint Kullanımı
@@ -64,4 +78,3 @@ Test suite; Sağlayıcı zinciri, Türkçe normalizasyonu, Boolean sorgu ayrış
 ## 📄 Lisans ve Söz Sağlayıcı Şartları
 - Spotify markası, Spotify AB'nin tescilli ticari markasıdır.
 - Şarkı sözleri yalnızca telif hakları çerçevesinde metin analizi ve alıntı amacıyla işlenmektedir.
-# Spotify-Music-Categoriser

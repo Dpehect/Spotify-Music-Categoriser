@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="tr" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spotify Semantic Music & Lyrics Engine v2.3 PRO</title>
+  
+  <!-- Inter & JetBrains Mono Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome Pro / Free Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            spotify: {
+              green: '#1DB954',
+              hoverGreen: '#1ed760',
+              activeGreen: '#169c46',
+              dark: '#0a0a0a',
+              card: '#121212',
+              surface: '#181818',
+              hover: '#222222',
+              border: 'rgba(255, 255, 255, 0.08)',
+              textMuted: '#a7a7a7',
+              textSubtle: '#6a6a6a'
+            }
+          },
+          boxShadow: {
+            'glow-sm': '0 0 15px rgba(29, 185, 84, 0.15)',
+            'glow-md': '0 0 25px rgba(29, 185, 84, 0.25)',
+            'glow-lg': '0 0 35px rgba(29, 185, 84, 0.35)',
+            'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.37)'
+          },
+          animation: {
+            'shimmer': 'shimmer 1.8s infinite',
+            'pulse-subtle': 'pulseSubtle 2.5s infinite ease-in-out',
+            'fade-in': 'fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+            'slide-up': 'slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+            'wave-bar': 'waveBar 1.2s ease-in-out infinite alternate',
+          },
+          keyframes: {
+            shimmer: {
+              '100%': { transform: 'translateX(100%)' }
+            },
+            pulseSubtle: {
+              '0%, 100%': { opacity: 1 },
+              '50%': { opacity: 0.55 }
+            },
+            fadeIn: {
+              '0%': { opacity: 0, transform: 'scale(0.98)' },
+              '100%': { opacity: 1, transform: 'scale(1)' }
+            },
+            slideUp: {
+              '0%': { opacity: 0, transform: 'translateY(12px)' },
+              '100%': { opacity: 1, transform: 'translateY(0)' }
+            },
+            waveBar: {
+              '0%': { height: '3px' },
+              '100%': { height: '16px' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Ultra-clean custom scrollbars */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.25); }
+
+    /* Accessibility focus ring */
+    *:focus-visible {
+      outline: 2px solid #1DB954 !important;
+      outline-offset: 2px !important;
+    }
+
+    /* Skeleton shimmer */
+    .skeleton-box {
+      position: relative;
+      overflow: hidden;
+      background-color: #1a1a1a;
+    }
+    .skeleton-box::after {
+      position: absolute;
+      top: 0; right: 0; bottom: 0; left: 0;
+      transform: translateX(-100%);
+      background-image: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0,
+        rgba(255, 255, 255, 0.04) 20%,
+        rgba(255, 255, 255, 0.08) 60%,
+        rgba(255, 255, 255, 0)
+      );
+      animation: shimmer 1.8s infinite;
+      content: '';
+    }
+
+    /* Range slider custom thumb */
+    input[type=range]::-webkit-slider-thumb {
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      background: #1DB954;
+      cursor: pointer;
+      -webkit-appearance: none;
+      box-shadow: 0 0 10px rgba(29, 185, 84, 0.6);
+      transition: transform 0.15s ease;
+    }
+    input[type=range]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    /* Active Genre Chip */
+    .chip-active {
+      background: linear-gradient(135deg, #1DB954, #1aa34a) !important;
+      color: #000000 !important;
+      font-weight: 700 !important;
+      border-color: #1DB954 !important;
+      box-shadow: 0 2px 10px rgba(29, 185, 84, 0.35) !important;
+    }
+
+    /* Glassmorphism Classes */
+    .glass-panel {
+      background: rgba(18, 18, 18, 0.72);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-card {
+      background: rgba(24, 24, 24, 0.6);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .glass-card:hover {
+      border-color: rgba(29, 185, 84, 0.3);
+      background: rgba(30, 30, 30, 0.75);
+    }
+
+    /* Ambient background canvas glow */
+    .ambient-glow {
+      position: fixed;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(29, 185, 84, 0.08) 0%, rgba(29, 185, 84, 0.02) 40%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Searchable, roomy genre picker */
+    .genre-chip {
+      min-height: 34px;
+      text-align: left;
+      overflow-wrap: anywhere;
+    }
+    .genre-chip[aria-pressed="true"] {
+      background: linear-gradient(135deg, rgba(29, 185, 84, .95), rgba(22, 156, 70, .95));
+      color: #050505;
+      border-color: rgba(29, 185, 84, .9);
+      font-weight: 700;
+    }
+    @media (min-width: 1024px) {
+      #filterSidebar { width: 30rem; height: calc(100vh - 220px); }
+      #genreChipsContainer { grid-template-columns: repeat(2, minmax(0, 1fr)); max-height: 320px; }
+    }
+    @media (min-width: 1440px) {
+      #filterSidebar { width: 32rem; }
+      #genreChipsContainer { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body class="bg-[#0a0a0a] text-white min-h-screen flex flex-col font-sans antialiased selection:bg-spotify-green selection:text-black relative overflow-x-hidden">
+
+  <!-- Ambient Background Glow -->
+  <div class="ambient-glow"></div>
+
+  <!-- A11y Skip Link -->
+  <a href="#tracksContainer" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:bg-spotify-green focus:text-black focus:font-bold focus:rounded-lg">
+    İçeriğe Atla
+  </a>
+
+  <!-- Canlı Ekran Okuyucu Duyuruları (A11y Live Region) -->
+  <div id="liveAnnouncer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Üst Navigasyon Barı (Header) -->
+  <header class="border-b border-white/[0.08] bg-[#0a0a0a]/85 backdrop-blur-xl sticky top-0 z-40 px-4 sm:px-8 py-3.5 flex items-center justify-between">
+    <div class="flex items-center space-x-3.5">
+      <!-- Mobil Filtre Çekmecesi Açma Butonu -->
+      <button type="button" id="mobileFilterToggleBtn" onclick="toggleMobileDrawer(true)" class="lg:hidden p-2.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-gray-300 hover:text-white transition border border-white/[0.08]" aria-label="Filtreleri Göster" aria-expanded="false">
+        <i class="fa-solid fa-sliders text-sm"></i>
+      </button>
+
+      <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 to-spotify-green flex items-center justify-center text-black shadow-glow-sm shrink-0">
+        <i class="fa-brands fa-spotify text-2xl"></i>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-sm sm:text-base font-extrabold tracking-tight text-white">Spotify Semantic Finder</h1>
+          <span class="text-[10px] bg-emerald-500/10 text-spotify-green border border-spotify-green/20 px-2 py-0.5 rounded-full font-bold font-mono tracking-wider">v2.3 PRO</span>
+        </div>
+        <p class="hidden sm:block text-[11px] text-gray-400">Dense Vector & BM25 Hybrid Retrieval • Negative Constraint Engine</p>
+      </div>
+    </div>
+
+    <!-- Üst Sağ: 1-Tıkla Spotify Girişi, Sistem Bilgi Modalı & API Ayarları -->
+    <div class="flex items-center space-x-2.5">
+      <!-- Bilgi Popover Butonu -->
+      <button type="button" onclick="openTechInfoModal()" class="text-xs bg-white/[0.04] hover:bg-white/[0.08] text-gray-300 px-3 py-1.5 rounded-xl transition border border-white/[0.08] flex items-center gap-1.5" title="Sistem Mimarisi ve Teknoloji Detayları">
+        <i class="fa-solid fa-circle-nodes text-spotify-green"></i>
+        <span class="hidden md:inline font-medium text-[11px]">Mimari</span>
+      </button>
+
+      <!-- Kullanıcı Spotify Giriş / Profil Butonu (1-Tıkla Bağlan) -->
+      <div id="userProfileBadge" class="flex items-center space-x-2 bg-white/[0.04] px-3 py-1.5 rounded-xl text-xs border border-white/[0.08] transition hover:border-spotify-green/40">
+        <span class="w-2 h-2 rounded-full bg-gray-500 shrink-0" id="userStatusDot"></span>
+        <span id="userStatusText" class="text-gray-300 text-[11px] truncate max-w-[140px] sm:max-w-none">
+          <a href="/login" class="text-white hover:text-spotify-green font-bold flex items-center gap-1.5">
+            <i class="fa-brands fa-spotify text-spotify-green text-sm"></i>
+            <span>Spotify ile Bağlan</span>
+          </a>
+        </span>
+      </div>
+
+      <!-- Geliştirici / Özel API Ayarları Butonu (İsteğe Bağlı) -->
+      <button type="button" onclick="openApiModal()" class="text-xs bg-white/[0.04] hover:bg-white/[0.08] text-gray-400 hover:text-gray-200 px-2.5 py-1.5 rounded-xl transition border border-white/[0.08] flex items-center space-x-1.5 active:scale-95" title="Gelişmiş: Kendi Spotify Developer anahtarlarını girmek isteyenler için">
+        <i class="fa-solid fa-sliders text-xs"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Hero Bölümü: Floating AI Prompt Bar & Quick Inspiration Chips -->
+  <section class="relative z-10 pt-6 pb-4 lg:pt-4 lg:pb-3 px-4 sm:px-8 border-b border-white/[0.06] bg-gradient-to-b from-[#111111]/90 via-[#0d0d0d]/90 to-[#0a0a0a]">
+    <div class="max-w-6xl mx-auto space-y-3.5 lg:space-y-2.5">
+      
+      <!-- AI Natural Language Prompt Bar -->
+      <div class="relative group">
+        <div class="absolute -inset-0.5 bg-gradient-to-r from-spotify-green/40 via-emerald-500/20 to-spotify-green/40 rounded-2xl blur opacity-30 group-focus-within:opacity-80 transition duration-500"></div>
+        <div class="relative flex items-center bg-[#141414]/90 backdrop-blur-xl border border-white/[0.12] group-focus-within:border-spotify-green/60 rounded-2xl p-1.5 shadow-2xl transition duration-300">
+          <div class="pl-3.5 pr-2 text-spotify-green text-sm flex items-center gap-2">
+            <i class="fa-solid fa-wand-magic-sparkles animate-pulse"></i>
+          </div>
+          <label for="nlInput" class="sr-only">AI Doğal Dil Arama İstemi</label>
+          <input type="text" id="nlInput" 
+                 placeholder="Yapay zekaya söyle: '90'lar Türkçe rap, sokak hikayesi anlatan, dertli ama motive edici'..." 
+                 class="w-full bg-transparent text-sm sm:text-base text-white placeholder-gray-500 px-2 py-2.5 focus:outline-none transition font-sans">
+          <button type="button" id="nlSearchBtn" onclick="applyNaturalLanguageSearch()" 
+                  class="bg-spotify-green hover:bg-spotify-hoverGreen active:scale-95 text-black font-extrabold text-xs sm:text-sm px-4 sm:px-5 py-2.5 rounded-xl transition flex items-center gap-2 shrink-0 shadow-glow-sm">
+            <span>Ayrıştır & Ara</span>
+            <i class="fa-solid fa-arrow-right text-xs"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Real-Time Extracted Parameter Pills (Dinamik Ayrıştırma Rozetleri) -->
+      <div id="aiExtractedPillsContainer" class="hidden flex flex-wrap items-center gap-1.5 text-[11px] animate-fade-in">
+        <span class="text-gray-400 font-semibold flex items-center gap-1 text-[10px]">
+          <i class="fa-solid fa-microchip text-spotify-green"></i> Tespit Edilen Parametreler:
+        </span>
+        <div id="aiPillsList" class="flex flex-wrap gap-1.5"></div>
+      </div>
+
+      <!-- Hızlı İlham Çipleri (Quick-Inspiration Chips) -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-1 pt-0.5 no-scrollbar text-xs">
+        <span class="text-[11px] font-semibold text-gray-500 shrink-0 uppercase tracking-wider">Hızlı Keşif:</span>
+        <button type="button" class="quick-chip shrink-0 px-3 py-1.5 rounded-full bg-white/[0.04] hover:bg-spotify-green/20 hover:text-spotify-green hover:border-spotify-green/40 border border-white/[0.08] text-gray-300 transition text-[11px] font-medium flex items-center gap-1.5 active:scale-95" data-prompt="90'lar Türkçe rap, sokak hikayesi, derin sözler, küfürsüz">
+          <span>🔥 90'lar Sokak Rap</span>
+        </button>
+        <button type="button" class="quick-chip shrink-0 px-3 py-1.5 rounded-full bg-white/[0.04] hover:bg-spotify-green/20 hover:text-spotify-green hover:border-spotify-green/40 border border-white/[0.08] text-gray-300 transition text-[11px] font-medium flex items-center gap-1.5 active:scale-95" data-prompt="Derin akustik gitar, melankolik aşk ve ayrılık şarkıları">
+          <span>💔 Derin Akustik Aşk</span>
+        </button>
+        <button type="button" class="quick-chip shrink-0 px-3 py-1.5 rounded-full bg-white/[0.04] hover:bg-spotify-green/20 hover:text-spotify-green hover:border-spotify-green/40 border border-white/[0.08] text-gray-300 transition text-[11px] font-medium flex items-center gap-1.5 active:scale-95" data-prompt="Motivasyon veren, başarı ve zirve temalı enerjik hiphop">
+          <span>⚡ Zirve Motivasyonu</span>
+        </button>
+        <button type="button" class="quick-chip shrink-0 px-3 py-1.5 rounded-full bg-white/[0.04] hover:bg-spotify-green/20 hover:text-spotify-green hover:border-spotify-green/40 border border-white/[0.08] text-gray-300 transition text-[11px] font-medium flex items-center gap-1.5 active:scale-95" data-prompt="2000'ler nostaljik alternatif rock, dert ve hüzün">
+          <span>🎸 2000'ler Alternatif Rock</span>
+        </button>
+        <button type="button" class="quick-chip shrink-0 px-3 py-1.5 rounded-full bg-white/[0.04] hover:bg-spotify-green/20 hover:text-spotify-green hover:border-spotify-green/40 border border-white/[0.08] text-gray-300 transition text-[11px] font-medium flex items-center gap-1.5 active:scale-95" data-prompt="Sözleri anlamlı, mumble olmayan, şiirsel Türkçe pop">
+          <span>✨ Şiirsel Türkçe Pop</span>
+        </button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Mobil Drawer Arka Plan Karartması (Backdrop) -->
+  <div id="drawerBackdrop" class="fixed inset-0 bg-black/80 backdrop-blur-md z-45 hidden lg:hidden transition-opacity opacity-0" onclick="toggleMobileDrawer(false)" aria-hidden="true"></div>
+
+  <!-- Ana Çalışma Alanı: Sidebar Accordion + Sonuçlar Canvas'ı -->
+  <div class="flex-1 flex flex-col lg:flex-row min-h-0 max-w-[1800px] w-full mx-auto p-3 sm:p-5 lg:p-6 gap-5 lg:gap-6 relative z-10">
+
+    <!-- Sol Filtre Paneli: Akordeon Yapılı Modern Sidebar -->
+    <aside id="filterSidebar" 
+           class="fixed inset-y-0 left-0 z-50 w-80 sm:w-96 glass-panel lg:rounded-2xl p-6 flex flex-col gap-4 shadow-2xl lg:shadow-xl shrink-0 overflow-hidden transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-out lg:static lg:min-h-0"
+           role="region" aria-label="Arama ve Filtre Kontrolleri">
+      
+      <!-- Panel Başlık & Hızlı Sıfırla -->
+      <div class="flex items-center justify-between pb-2 border-b border-white/[0.08]">
+        <h2 class="text-sm font-extrabold text-white flex items-center gap-2">
+          <i class="fa-solid fa-sliders text-spotify-green"></i>
+          <span>Parametre Kılavuzu</span>
+        </h2>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="resetFilters()" class="text-[11px] text-gray-400 hover:text-spotify-green transition font-medium flex items-center gap-1" title="Tüm filtreleri sıfırla">
+            <i class="fa-solid fa-rotate-left text-[10px]"></i>
+            <span>Sıfırla</span>
+          </button>
+          <button type="button" onclick="toggleMobileDrawer(false)" class="lg:hidden text-gray-400 hover:text-white p-1" aria-label="Çekmeceyi Kapat">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+      </div>
+
+      <div id="filterSections" class="flex-1 min-h-0 overflow-y-auto overscroll-contain flex flex-col gap-4 pr-1">
+      <!-- Akordeon Bölüm 1: Temel Kriterler (Söz, Dil, Kategori, Yıl) -->
+      <div class="shrink-0 rounded-xl border border-white/[0.08] bg-white/[0.02] overflow-hidden">
+        <button type="button" onclick="toggleAccordion('sec-basic')" aria-expanded="true" aria-controls="sec-basic" class="w-full px-3.5 py-2.5 flex items-center justify-between text-xs font-bold text-gray-200 hover:bg-white/[0.04] transition">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-music text-spotify-green text-xs"></i>
+            <span>Temel Kriterler & Tür</span>
+          </div>
+          <i id="icon-sec-basic" class="fa-solid fa-chevron-down text-[10px] text-gray-400 transition-transform duration-200"></i>
+        </button>
+        <div id="sec-basic" class="p-3.5 space-y-3.5 border-t border-white/[0.06]">
+          
+          <!-- Şarkı Sözü / Dize Arama Kutusu -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label for="lyricsInput" class="text-xs font-semibold text-gray-300">Şarkıda Geçen Dize / Kelime</label>
+              <span class="text-[10px] text-gray-500 font-mono">Opsiyonel</span>
+            </div>
+            <div class="relative">
+              <i class="fa-solid fa-quote-left absolute left-3 top-3 text-spotify-green text-xs pointer-events-none" aria-hidden="true"></i>
+              <input type="text" id="lyricsInput" placeholder="Örn: paramparça, -ceza..." 
+                     class="w-full bg-[#181818] border border-white/[0.1] rounded-xl pl-9 pr-3 py-2 text-xs sm:text-sm text-white placeholder-gray-500 focus:outline-none focus:border-spotify-green transition">
+            </div>
+            <p class="text-[10px] text-gray-500 mt-1">İpucu: Hariç tutmak için <code>-kelime</code>, kesin eşleşme için <code>"ifade"</code></p>
+          </div>
+
+          <!-- Dil Seçimi -->
+          <div>
+            <label for="langSelect" class="block text-xs font-semibold text-gray-300 mb-1">Şarkının Dili (Otomatik Doğrulanır)</label>
+            <select id="langSelect" class="w-full bg-[#181818] border border-white/[0.1] rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-spotify-green cursor-pointer">
+              <option value="all">Tüm Diller</option>
+              <option value="tr">Türkçe</option>
+              <option value="en">İngilizce</option>
+            </select>
+          </div>
+
+          <!-- Kategori & Dinamik Alt Tür Chip'leri -->
+          <div class="space-y-3">
+            <div>
+              <label for="categorySelect" class="block text-xs font-semibold text-gray-300 mb-1">Müzik Kategorisi</label>
+              <select id="categorySelect" class="w-full bg-[#181818] border border-white/[0.1] rounded-xl px-3 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-spotify-green cursor-pointer">
+                <option value="all">Tüm Kategoriler</option>
+              </select>
+              <p id="categoryDescription" class="text-[10px] text-gray-500 mt-1.5">Bir kategori seçerek alt türleri daraltın.</p>
+            </div>
+
+            <div class="flex items-center justify-between gap-2">
+              <label for="genreSearchInput" class="text-[11px] font-semibold text-gray-300">Alt türler</label>
+              <span id="genreCountBadge" class="text-[10px] text-spotify-green font-mono">0 seçili</span>
+            </div>
+            <input type="search" id="genreSearchInput" placeholder="Tür ara: ör. indie, trap, jazz" autocomplete="off" class="w-full bg-[#141414] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-spotify-green" aria-label="Alt türlerde ara">
+            <div id="genreChipsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2 max-h-60 overflow-y-auto overscroll-contain p-2.5 bg-[#141414] rounded-xl border border-white/[0.08]" role="group" aria-label="Alt Tür Seçimi">
+              <!-- Dinamik olarak JS ile dolar -->
+            </div>
+            <div class="flex items-center justify-between min-h-7">
+              <span id="genreResultsLabel" class="text-[10px] text-gray-500" aria-live="polite"></span>
+              <button type="button" id="clearGenresBtn" class="text-[10px] text-gray-400 hover:text-spotify-green transition" onclick="clearSelectedGenres()">Seçimi temizle</button>
+            </div>
+          </div>
+
+          <!-- Dönem & Yıl Aralığı -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="text-xs font-semibold text-gray-300">Yıl Aralığı</label>
+              <span id="yearRangeDisplay" class="text-xs text-spotify-green font-bold font-mono">1990 - 2026</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <label for="yearStartInput" class="sr-only">Başlangıç Yılı</label>
+              <input type="number" id="yearStartInput" min="1950" max="2026" value="1990" class="w-20 bg-[#181818] border border-white/[0.1] text-center rounded-lg text-xs py-1.5 text-white font-mono">
+              <span class="text-gray-500 text-xs">-</span>
+              <label for="yearEndInput" class="sr-only">Bitiş Yılı</label>
+              <input type="number" id="yearEndInput" min="1950" max="2026" value="2026" class="w-20 bg-[#181818] border border-white/[0.1] text-center rounded-lg text-xs py-1.5 text-white font-mono">
+            </div>
+            <!-- On Yıllık Hızlı Butonlar -->
+            <div class="flex flex-wrap gap-1 mt-2">
+              <button type="button" onclick="setDecade(1980, 1989)" class="text-[10px] bg-white/[0.04] hover:bg-white/[0.08] text-gray-300 px-2 py-0.5 rounded border border-white/[0.08] transition">80'ler</button>
+              <button type="button" onclick="setDecade(1990, 1999)" class="text-[10px] bg-white/[0.04] hover:bg-white/[0.08] text-gray-300 px-2 py-0.5 rounded border border-white/[0.08] transition">90'lar</button>
+              <button type="button" onclick="setDecade(2000, 2009)" class="text-[10px] bg-white/[0.04] hover:bg-white/[0.08] text-gray-300 px-2 py-0.5 rounded border border-white/[0.08] transition">2000'ler</button>
+              <button type="button" onclick="setDecade(2010, 2019)" class="text-[10px] bg-white/[0.04] hover:bg-white/[0.08] text-gray-300 px-2 py-0.5 rounded border border-white/[0.08] transition">2010'lar</button>
+              <button type="button" onclick="setDecade(2020, 2026)" class="text-[10px] bg-white/[0.04] hover:bg-white/[0.08] text-gray-300 px-2 py-0.5 rounded border border-white/[0.08] transition">2020'ler</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Akordeon Bölüm 2: Gelişmiş AI & Anti-Mumble Kalkanı -->
+      <div class="shrink-0 rounded-xl border border-white/[0.08] bg-white/[0.02] overflow-hidden">
+        <button type="button" onclick="toggleAccordion('sec-ai')" aria-expanded="true" aria-controls="sec-ai" class="w-full px-3.5 py-2.5 flex items-center justify-between text-xs font-bold text-gray-200 hover:bg-white/[0.04] transition">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-shield-halved text-emerald-400 text-xs"></i>
+            <span>Gelişmiş AI & Anti-Mumble</span>
+          </div>
+          <i id="icon-sec-ai" class="fa-solid fa-chevron-down text-[10px] text-gray-400 transition-transform duration-200"></i>
+        </button>
+        <div id="sec-ai" class="p-3.5 space-y-3.5 border-t border-white/[0.06]">
+          
+          <!-- Anlamlı Söz Filtresi Aç/Kapa -->
+          <div class="flex items-center justify-between bg-emerald-950/20 p-2.5 rounded-xl border border-emerald-800/30">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-brain text-emerald-400 text-xs"></i>
+              <div>
+                <label for="meaningfulCheckbox" class="text-xs font-bold text-white block cursor-pointer select-none">Anti-Mumble Kalkanı</label>
+                <span class="text-[10px] text-gray-400 block">Anlamsız tekrarlar & nakarat kirliliği elenir</span>
+              </div>
+            </div>
+            <input type="checkbox" id="meaningfulCheckbox" class="w-4 h-4 accent-spotify-green rounded cursor-pointer" checked>
+          </div>
+
+          <!-- Filtre Katılık Seviyesi -->
+          <div>
+            <div class="flex justify-between items-center text-[11px] text-gray-400 mb-1.5">
+              <span>Filtre Katılığı:</span>
+              <span id="strictnessLabel" class="text-spotify-green font-bold font-mono">Dengeli (>=60)</span>
+            </div>
+            <div class="grid grid-cols-3 gap-1.5" role="group" aria-label="Filtre Katılık Seviyesi">
+              <button type="button" onclick="setStrictness('loose')" id="btn-loose" class="text-[10px] py-1.5 bg-white/[0.04] hover:bg-white/[0.08] rounded-lg border border-white/[0.08] text-gray-300 font-medium transition active:scale-95">Gevşek</button>
+              <button type="button" onclick="setStrictness('balanced')" id="btn-balanced" class="text-[10px] py-1.5 bg-spotify-green text-black font-bold rounded-lg border border-spotify-green transition active:scale-95">Dengeli</button>
+              <button type="button" onclick="setStrictness('strict')" id="btn-strict" class="text-[10px] py-1.5 bg-white/[0.04] hover:bg-white/[0.08] rounded-lg border border-white/[0.08] text-gray-300 font-medium transition active:scale-95">Sıkı</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Akordeon Bölüm 3: Tema & Müstehcenlik & Akustik Profiller -->
+      <div class="shrink-0 rounded-xl border border-white/[0.08] bg-white/[0.02] overflow-hidden">
+        <button type="button" onclick="toggleAccordion('sec-theme')" aria-expanded="true" aria-controls="sec-theme" class="w-full px-3.5 py-2.5 flex items-center justify-between text-xs font-bold text-gray-200 hover:bg-white/[0.04] transition">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-heart-pulse text-purple-400 text-xs"></i>
+            <span>Tema & İçerik Uygunluğu</span>
+          </div>
+          <i id="icon-sec-theme" class="fa-solid fa-chevron-down text-[10px] text-gray-400 transition-transform duration-200"></i>
+        </button>
+        <div id="sec-theme" class="p-3.5 space-y-3.5 border-t border-white/[0.06]">
+          
+          <div>
+            <label for="themeSelect" class="block text-[11px] font-semibold text-gray-300 mb-1">
+              <i class="fa-solid fa-compass text-spotify-green mr-1"></i>Tema Odak
+            </label>
+            <select id="themeSelect" class="w-full bg-[#181818] border border-white/[0.1] focus:border-spotify-green rounded-xl px-2.5 py-2 text-xs text-white focus:outline-none transition cursor-pointer">
+              <option value="all">🌐 Tüm Temalar</option>
+              <option value="aşk">❤️ Aşk, Romantizm & Ayrılık</option>
+              <option value="sokak">🏙️ Sokak, Mahalle & Realite</option>
+              <option value="dert">🌧️ Dert, Hüzün & Melankoli</option>
+              <option value="motivasyon">🔥 Motivasyon, Başarı & Zirve</option>
+              <option value="toplumsal">⚖️ Toplumsal Eleştiri & İsyan</option>
+              <option value="nostalji">⏳ Nostalji, Anılar & Mazi</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="profanitySelect" class="block text-[11px] font-semibold text-gray-300 mb-1">
+              <i class="fa-solid fa-shield-heart text-spotify-green mr-1"></i>Müstehcenlik Seviyesi
+            </label>
+            <select id="profanitySelect" class="w-full bg-[#181818] border border-white/[0.1] focus:border-spotify-green rounded-xl px-2.5 py-2 text-xs text-white focus:outline-none transition cursor-pointer">
+              <option value="all">⚡ Serbest (Orijinal / Explicit)</option>
+              <option value="moderate">🛡️ Hafif / Orta Sansür</option>
+              <option value="clean">✨ Temiz (Küfürsüz / Family Safe)</option>
+            </select>
+          </div>
+
+          <!-- Sonuç Limiti Slider'ı -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label for="limitRange" class="text-xs font-semibold text-gray-300">Sonuç Adedi</label>
+              <span id="limitDisplay" class="text-xs text-spotify-green font-bold font-mono">20</span>
+            </div>
+            <input type="range" id="limitRange" min="5" max="100" step="5" value="20"
+                   class="w-full accent-spotify-green bg-[#242424] h-1.5 rounded-lg appearance-none cursor-pointer">
+          </div>
+
+        </div>
+      </div>
+      </div>
+
+      <!-- Sticky Alt Buton Paneli -->
+      <div class="shrink-0 glass-panel pt-3 pb-1 border-t border-white/[0.08] -mx-5 px-5 flex flex-col gap-2 mt-auto">
+        <button type="button" id="searchBtn" onclick="executeSearch()" class="w-full bg-gradient-to-r from-emerald-500 to-spotify-green hover:from-emerald-400 hover:to-spotify-hoverGreen active:scale-[0.98] text-black font-extrabold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition duration-150 shadow-glow-sm">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <span>Şarkıları Bul & Sırala</span>
+        </button>
+
+        <div class="flex items-center justify-between pt-1">
+          <span class="text-xs font-semibold text-gray-300">Spotify'a Aktarım</span>
+          <span id="selectedCount" class="text-xs text-spotify-green font-bold font-mono">0 Seçili</span>
+        </div>
+        <button type="button" id="exportBtn" onclick="openExportModal()" disabled class="w-full bg-white/[0.05] text-gray-500 font-semibold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-2 transition cursor-not-allowed border border-white/[0.08]">
+          <i class="fa-brands fa-spotify text-sm"></i>
+          <span>Önizle & Playlist Yap</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Sağ Sonuçlar Alanı: Modern Glassmorphic Discovery Canvas -->
+    <main class="flex-1 glass-panel rounded-2xl flex flex-col overflow-hidden shadow-2xl relative" role="main">
+      
+      <!-- Sonuçlar Başlık & Canlı Durum & Sıralama Barı -->
+      <div class="px-5 py-3.5 border-b border-white/[0.08] flex flex-wrap items-center justify-between gap-3 bg-[#111111]/70 backdrop-blur-md">
+        <div class="flex items-center gap-3">
+          <h2 id="resultsHeading" class="text-base sm:text-lg font-extrabold text-white flex items-center gap-2">
+            <span>Keşif Sonuçları</span>
+          </h2>
+          <span id="resultsCountBadge" class="hidden text-xs bg-emerald-500/10 text-spotify-green px-2.5 py-0.5 rounded-full border border-spotify-green/20 font-mono font-bold">0 parça</span>
+        </div>
+
+        <div class="flex items-center gap-3 flex-wrap">
+          <!-- Dinamik Sıralama Seçici -->
+          <div id="sortContainer" class="hidden flex items-center gap-2">
+            <label for="sortBySelect" class="text-xs text-gray-400 font-medium">Sırala:</label>
+            <select id="sortBySelect" onchange="changeSorting(this.value)" class="bg-[#181818] text-white border border-white/[0.1] text-xs rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-spotify-green cursor-pointer">
+              <option value="relevance">Önerilen (Semantik Alaka)</option>
+              <option value="meaningful_score">En Yüksek Söz Skoru</option>
+              <option value="genre_match">En İyi Tür Uyumu</option>
+              <option value="popularity">En Popüler</option>
+              <option value="newest">En Yeni Çıkanlar</option>
+              <option value="random">Rastgele Karışık</option>
+            </select>
+          </div>
+
+          <div id="selectionActions" class="hidden flex items-center gap-2">
+            <button type="button" onclick="toggleSelectAll()" id="selectAllBtn" class="text-xs text-gray-300 hover:text-spotify-green transition underline font-medium px-2 py-1 rounded">
+              Hepsini Seç
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Eleme İstatistikleri ve Filtre Gevşetme Kutusu -->
+      <div id="statsSummaryBanner" class="hidden mx-4 mt-3 p-3 bg-emerald-950/20 border border-emerald-800/40 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 text-xs animate-slide-up">
+        <div class="flex items-center gap-2.5 text-gray-300">
+          <i class="fa-solid fa-circle-info text-spotify-green text-sm shrink-0"></i>
+          <span id="statsSummaryText">Arama özeti yükleniyor...</span>
+        </div>
+        <button type="button" onclick="relaxFiltersAndSearch()" class="text-[11px] bg-emerald-900/40 hover:bg-spotify-green hover:text-black text-emerald-300 font-bold px-3 py-1.5 rounded-lg transition shrink-0 border border-emerald-700/60 active:scale-95 shadow">
+          Filtreleri Gevşet & Tekrar Ara
+        </button>
+      </div>
+
+      <!-- Şarkı Kartları Listesi / Skeleton Yükleyici -->
+      <div id="tracksContainer" class="flex-1 overflow-y-auto p-4 space-y-2.5 focus:outline-none" tabindex="-1">
+        <!-- Başlangıç Karşılama Ekranı (Apple / Spotify High-End Aesthetic) -->
+        <div id="welcomePlaceholder" class="h-full min-h-[420px] flex flex-col items-center justify-center text-center p-8 text-gray-400">
+          <div class="relative mb-6">
+            <div class="w-20 h-20 rounded-3xl bg-gradient-to-tr from-emerald-600/30 to-spotify-green/20 border border-spotify-green/30 flex items-center justify-center text-4xl text-spotify-green shadow-glow-md">
+              <i class="fa-solid fa-compact-disc animate-[spin_10s_linear_infinite]"></i>
+            </div>
+            <div class="absolute -bottom-2 -right-2 w-8 h-8 rounded-xl bg-[#121212] border border-white/10 flex items-center justify-center text-spotify-green text-sm shadow">
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+            </div>
+          </div>
+          <h3 class="text-xl font-extrabold text-white mb-2 tracking-tight">Akıllı Müzik Keşfine Hazırsınız</h3>
+          <p class="max-w-md text-xs leading-relaxed text-gray-400 mb-6">
+            Üstteki doğal dil istem çubuğuna aklınızdaki havayı veya dizeyi yazın. Dense Vector & Hibrit BM25 motoru, anti-mumble filtresiyle aradığınız derin anlamlı parçaları anında listelesin.
+          </p>
+          <div class="flex flex-wrap items-center justify-center gap-2 max-w-lg">
+            <span class="text-[11px] px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] text-gray-400">🎯 %50 Semantik + %50 Leksikal</span>
+            <span class="text-[11px] px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] text-gray-400">🛡️ Anti-Mumble Analizörü</span>
+            <span class="text-[11px] px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] text-gray-400">⚡ Negatif Kısıt Filtreleri</span>
+          </div>
+        </div>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Gelişmiş 30sn Önizleme Çubuğu (Persistent Floating Player) -->
+  <div id="floatingPlayerBar" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-40 bg-[#141414]/90 backdrop-blur-xl border border-white/[0.12] px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4 max-w-xl w-[92%] sm:w-auto animate-slide-up">
+    <button type="button" id="floatingPlayPauseBtn" onclick="toggleFloatingPlayPause()" class="w-9 h-9 rounded-full bg-spotify-green text-black flex items-center justify-center hover:scale-105 transition shadow-glow-sm" aria-label="Oynat/Duraklat">
+      <i class="fa-solid fa-play text-xs" id="floatingPlayIcon"></i>
+    </button>
+    <div class="flex-1 min-w-0 pr-2">
+      <div class="flex items-center justify-between text-[11px] mb-1.5">
+        <span id="floatingTrackName" class="font-bold text-white truncate max-w-[170px] sm:max-w-[240px]">Şarkı Başlığı</span>
+        <span id="floatingTimeDisplay" class="font-mono text-gray-400 text-[10px]">0:00 / 0:30</span>
+      </div>
+      <div class="w-full bg-white/[0.1] h-1.5 rounded-full overflow-hidden cursor-pointer" id="floatingProgressBar" onclick="seekFloatingAudio(event)">
+        <div id="floatingProgressFill" class="bg-spotify-green h-full w-0 transition-all duration-100"></div>
+      </div>
+    </div>
+    <button type="button" onclick="closeFloatingPlayer()" class="text-gray-400 hover:text-white p-1" aria-label="Oynatıcıyı Kapat">
+      <i class="fa-solid fa-xmark text-sm"></i>
+    </button>
+  </div>
+
+  <!-- Gizli HTML5 Audio Öğesi -->
+  <audio id="audioPreviewPlayer" class="hidden" preload="none"></audio>
+
+  <!-- Playlist Oluşturma & Düzenleme Modalı (ISRC Tekilleştirme Destekli) -->
+  <div id="exportModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="exportModalTitle">
+    <div class="glass-panel rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 animate-fade-in" role="document">
+      <div class="flex justify-between items-center border-b border-white/[0.08] pb-3">
+        <h3 id="exportModalTitle" class="font-extrabold text-base sm:text-lg text-white flex items-center gap-2">
+          <i class="fa-brands fa-spotify text-spotify-green text-xl"></i>
+          <span>Önizle & Çalma Listesi Oluştur</span>
+        </h3>
+        <button type="button" onclick="closeExportModal()" class="text-gray-400 hover:text-white text-xl p-1 leading-none" aria-label="Kapat">&times;</button>
+      </div>
+
+      <div class="text-xs text-gray-300 space-y-1">
+        <p>Seçilen <b id="exportCountBadge" class="text-spotify-green font-bold font-mono">0</b> şarkı Spotify hesabınıza ISRC tekilleştirmesiyle aktarılacaktır.</p>
+      </div>
+
+      <div>
+        <label for="playlistNameInput" class="block text-xs font-semibold text-gray-300 mb-1">Çalma Listesi İsmi</label>
+        <input type="text" id="playlistNameInput" value="Keşif Listem - SpotifyFinder" 
+               class="w-full bg-[#181818] border border-white/[0.1] rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-spotify-green">
+      </div>
+
+      <div>
+        <label for="playlistDescInput" class="block text-xs font-semibold text-gray-300 mb-1">Açıklama</label>
+        <input type="text" id="playlistDescInput" value="Spotify Şarkı Sözü & Anlamsal Keşif Motoru (v2.3) ile derlendi." 
+               class="w-full bg-[#181818] border border-white/[0.1] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-spotify-green">
+      </div>
+
+      <div id="exportStatus" class="text-xs text-center min-h-[20px]" aria-live="polite"></div>
+
+      <div class="flex justify-end gap-3 pt-2">
+        <button type="button" onclick="closeExportModal()" class="px-4 py-2 text-xs font-semibold text-gray-300 hover:bg-white/[0.05] rounded-xl transition">Vazgeç</button>
+        <button type="button" id="confirmExportBtn" onclick="exportToSpotify()" class="px-5 py-2 text-xs font-bold bg-spotify-green hover:bg-spotify-hoverGreen text-black rounded-xl transition flex items-center gap-2 active:scale-95 shadow-glow-sm">
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+          <span>Hesabıma Aktar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Şarkı Sözleri Analiz / Alıntı Modalı -->
+  <div id="lyricsModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="lyricsModalTitle">
+    <div class="glass-panel rounded-2xl max-w-lg w-full max-h-[85vh] flex flex-col p-6 shadow-2xl space-y-3 animate-fade-in" role="document">
+      <div class="flex justify-between items-start border-b border-white/[0.08] pb-3">
+        <div>
+          <h3 id="lyricsModalTitle" class="font-extrabold text-base sm:text-lg text-white">Şarkı İsmi</h3>
+          <p id="lyricsModalArtist" class="text-xs text-gray-400">Sanatçı</p>
+        </div>
+        <button type="button" onclick="closeLyricsModal()" class="text-gray-400 hover:text-white text-xl p-1 leading-none" aria-label="Kapat">&times;</button>
+      </div>
+
+      <div class="bg-amber-950/30 border border-amber-800/40 p-2.5 rounded-xl text-[10px] text-amber-300 flex items-center gap-2">
+        <i class="fa-solid fa-shield-halved shrink-0"></i>
+        <span>Telif Kuralı: Şarkı sözleri sunucuda kalıcı saklanmaz; yalnızca anlık inceleme amaçlı görüntülenir.</span>
+      </div>
+
+      <div id="lyricsModalContent" class="flex-1 overflow-y-auto pr-2 min-h-[200px]" tabindex="0" role="region" aria-label="Şarkı Sözleri İçeriği">
+      </div>
+
+      <div class="flex justify-end pt-2 border-t border-white/[0.08]">
+        <button type="button" onclick="closeLyricsModal()" class="px-5 py-2 text-xs font-semibold bg-white/[0.06] hover:bg-white/[0.1] text-gray-200 rounded-xl transition">Kapat</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sistem Mimarisi & Teknoloji Bilgi Modalı -->
+  <div id="techInfoModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="techInfoTitle">
+    <div class="glass-panel rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 animate-fade-in" role="document">
+      <div class="flex justify-between items-center border-b border-white/[0.08] pb-3">
+        <h3 id="techInfoTitle" class="font-extrabold text-base sm:text-lg text-white flex items-center gap-2">
+          <i class="fa-solid fa-circle-nodes text-spotify-green"></i>
+          <span>Sistem Mimarisi & Altyapı</span>
+        </h3>
+        <button type="button" onclick="closeTechInfoModal()" class="text-gray-400 hover:text-white text-lg p-1 leading-none" aria-label="Kapat">&times;</button>
+      </div>
+
+      <div class="text-xs text-gray-300 space-y-3 leading-relaxed">
+        <div class="bg-white/[0.03] p-3 rounded-xl border border-white/[0.06] space-y-1">
+          <h4 class="font-bold text-spotify-green flex items-center gap-1.5">
+            <i class="fa-solid fa-microchip"></i> Dense Vector & Hybrid Retrieval
+          </h4>
+          <p class="text-gray-400 text-[11px]">Parola/söz eşleşmesi %50 BM25 leksikal + %50 Sentence-Transformers kosinüs benzerliği ile puanlanır.</p>
+        </div>
+
+        <div class="bg-white/[0.03] p-3 rounded-xl border border-white/[0.06] space-y-1">
+          <h4 class="font-bold text-spotify-green flex items-center gap-1.5">
+            <i class="fa-solid fa-filter-circle-xmark"></i> Negatif Kısıt & Anti-Mumble
+          </h4>
+          <p class="text-gray-400 text-[11px]">Söz dağarcığı zenginliği (TTR), satır tekrar oranı ve ad-lib temizliği hesaplanarak anlamsız mumble ve marka sayıklamaları elenir.</p>
+        </div>
+
+        <div class="bg-white/[0.03] p-3 rounded-xl border border-white/[0.06] space-y-1">
+          <h4 class="font-bold text-spotify-green flex items-center gap-1.5">
+            <i class="fa-solid fa-key"></i> PKCE OAuth 2.0 & LRCLIB/Genius
+          </h4>
+          <p class="text-gray-400 text-[11px]">Şarkı sözleri LRCLIB ve Genius senkronizasyonu ile getirilir; Spotify API'ye doğrudan ISRC kodlarıyla tekilleştirilmiş aktarım yapılır.</p>
+        </div>
+      </div>
+
+      <div class="flex justify-end pt-2">
+        <button type="button" onclick="closeTechInfoModal()" class="px-5 py-2 text-xs font-semibold bg-white/[0.06] hover:bg-white/[0.1] text-gray-200 rounded-xl transition">Anladım</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- API Ayarları Modalı -->
+  <div id="apiModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="apiModalTitle">
+    <div class="glass-panel rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 animate-fade-in" role="document">
+      <div class="flex justify-between items-center border-b border-white/[0.08] pb-3">
+        <h3 id="apiModalTitle" class="font-extrabold text-base sm:text-lg text-white flex items-center gap-2">
+          <i class="fa-solid fa-key text-spotify-green"></i>
+          <span>Spotify API Yapılandırması</span>
+        </h3>
+        <button type="button" onclick="closeApiModal()" class="text-gray-400 hover:text-white text-lg p-1 leading-none" aria-label="Kapat">&times;</button>
+      </div>
+
+      <div>
+        <label for="modalClientId" class="block text-xs font-semibold text-gray-300 mb-1">Client ID</label>
+        <input type="text" id="modalClientId" class="w-full bg-[#181818] border border-white/[0.1] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-spotify-green font-mono text-xs">
+      </div>
+
+      <div>
+        <label for="modalClientSecret" class="block text-xs font-semibold text-gray-300 mb-1">Client Secret</label>
+        <input type="password" id="modalClientSecret" class="w-full bg-[#181818] border border-white/[0.1] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-spotify-green font-mono text-xs">
+      </div>
+
+      <div id="modalStatus" class="text-xs text-center min-h-[16px]" aria-live="polite"></div>
+
+      <div class="flex justify-end gap-3 pt-2">
+        <button type="button" onclick="closeApiModal()" class="px-4 py-2 text-xs font-semibold text-gray-300 hover:bg-white/[0.05] rounded-xl transition">Kapat</button>
+        <button type="button" onclick="saveApiKeys()" class="px-5 py-2 text-xs font-bold bg-spotify-green hover:bg-spotify-hoverGreen text-black rounded-xl transition active:scale-95 shadow-glow-sm">Kaydet & Doğrula</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Bildirim Konteyneri -->
+  <div id="toastContainer" class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none" aria-live="assertive"></div>
+
+  <script src="/static/js/main.js"></script>
+</body>
+</html>
